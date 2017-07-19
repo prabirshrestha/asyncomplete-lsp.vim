@@ -19,7 +19,7 @@ function! s:server_initialized() abort
                 let l:source_opt = {
                     \ 'name': l:name,
                     \ 'completor': function('s:completor', [l:server_name]),
-                    \ 'refresh_pattern': '\(\k\+$\|\.$\)',
+                    \ 'refresh_pattern': '\(\k\+$\|\.$\|:$\)',
                     \ }
                 let l:server = lsp#get_server_info(l:server_name)
                 if has_key(l:server, 'whitelist')
