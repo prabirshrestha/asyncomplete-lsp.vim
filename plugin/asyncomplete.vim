@@ -111,7 +111,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         call add(l:matches, l:item['label'])
     endfor
 
-    let l:matches = map(l:items,'{"word":v:val["label"],"dup":1,"icase":1,"menu": s:get_symbol_text_from_kind(v:val["kind"])}')
+    let l:matches = map(l:items,'{"word":has_key(v:val, "inserText") && v:val["insertText"] !=# "" ? v:val["insertText"] : v:val["label"],"dup":1,"icase":1,"menu": s:get_symbol_text_from_kind(v:val["kind"])}')
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
