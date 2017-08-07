@@ -29,8 +29,8 @@ let s:symbol_kinds = {
     \ '18': 'array',
     \ }
 
-function! s:get_symbol_text_from_kind(kind)
-    return has_key(s:symbol_kinds, a:kind) ? s:symbol_kinds[a:kind] : 'unknown symbol ' . a:kind
+function! s:get_symbol_text_from_kind(completion_item)
+    return has_key(a:completion_item, 'kind') && has_key(s:symbol_kinds, a:completion_item['kind']) ? s:symbol_kinds[a:completion_item['kind']] : ''
 endfunction
 
 function! s:server_initialized() abort
@@ -111,7 +111,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         call add(l:matches, l:item['label'])
     endfor
 
-    let l:matches = map(l:items,'{"word":v:val["label"],"dup":1,"icase":1,"menu": s:get_symbol_text_from_kind(v:val["kind"])}')
+    let l:matches = map(l:items,'{"word":v:val["label"],"dup":1,"icase":1,"menu": s:get_symbol_text_from_kind(v:val)}')
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
