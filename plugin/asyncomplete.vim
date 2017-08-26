@@ -105,12 +105,6 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         let l:incomplete = l:result['isIncomplete']
     endif
 
-    let l:matches = []
-
-    for l:item in l:items
-        call add(l:matches, l:item['label'])
-    endfor
-
     let l:matches = map(l:items,'{"word":v:val["label"],"dup":1,"icase":1,"menu": s:get_symbol_text_from_kind(v:val)}')
 
     let l:col = a:ctx['col']
