@@ -8,31 +8,6 @@ let s:servers = {} " { server_name: 1 }
 au User lsp_server_init call s:server_initialized()
 au User lsp_server_exit call s:server_exited()
 
-let s:symbol_kinds = {
-    \ '1': 'file',
-    \ '2': 'module',
-    \ '3': 'namespace',
-    \ '4': 'package',
-    \ '5': 'class',
-    \ '6': 'method',
-    \ '7': 'property',
-    \ '8': 'field',
-    \ '9': 'constructor',
-    \ '10': 'enum',
-    \ '11': 'interface',
-    \ '12': 'function',
-    \ '13': 'variable',
-    \ '14': 'constant',
-    \ '15': 'string',
-    \ '16': 'number',
-    \ '17': 'boolean',
-    \ '18': 'array',
-    \ }
-
-function! s:get_symbol_text_from_kind(completion_item)
-    return has_key(a:completion_item, 'kind') && has_key(s:symbol_kinds, a:completion_item['kind']) ? s:symbol_kinds[a:completion_item['kind']] : ''
-endfunction
-
 function! s:server_initialized() abort
     let l:server_names = lsp#get_server_names()
     for l:server_name in l:server_names
@@ -105,7 +80,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         let l:incomplete = l:result['isIncomplete']
     endif
 
-    let l:matches = map(l:items,'{"word":v:val["label"],"dup":1,"icase":1,"menu": s:get_symbol_text_from_kind(v:val)}')
+    let l:matches = map(l:items,'{"word":v:val["label"],"dup":1,"icase":1,"menu": lsp#omni#get_kind_text(v:val)}')
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
