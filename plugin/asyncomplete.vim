@@ -80,7 +80,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         let l:incomplete = l:result['isIncomplete']
     endif
 
-    let l:matches = map(l:items,'{"word":v:val["label"],"dup":1,"icase":1,"menu": lsp#omni#get_kind_text(v:val)}')
+    call map(l:items, {_, item -> s:format_completion_item(item)})
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
@@ -88,5 +88,17 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
     let l:kwlen = len(l:kw)
     let l:startcol = l:col - l:kwlen
 
-    call asyncomplete#complete(a:opt['name'], a:ctx, l:startcol, l:matches, l:incomplete)
+    call asyncomplete#complete(a:opt['name'], a:ctx, l:startcol, l:items, l:incomplete)
+endfunction
+
+function! s:format_completion_item(item)
+    if has_key(a:item, 'insertText') && !empty(a:item['insertText'])
+        let l:word = a:item['insertText']
+        let l:abbr = a:item['label']
+    else
+        let l:word = a:item['label']
+        let l:abbr = ''
+    endif
+    let l:menu = lsp#omni#get_kind_text(a:item)
+    return {'word': l:word, 'abbr': l:abbr, 'menu': l:menu, 'icase': 1, 'dup': 1}
 endfunction
