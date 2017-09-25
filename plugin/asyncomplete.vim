@@ -80,7 +80,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         let l:incomplete = l:result['isIncomplete']
     endif
 
-    call map(l:items, {_, item -> s:format_completion_item(item)})
+    call map(l:items, 's:format_completion_item(v:val)')
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
