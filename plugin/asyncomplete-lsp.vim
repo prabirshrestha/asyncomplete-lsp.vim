@@ -93,7 +93,11 @@ endfunction
 
 function! s:format_completion_item(item)
     if has_key(a:item, 'insertText') && !empty(a:item['insertText'])
-        let l:word = a:item['insertText']
+        if has_key(a:item, 'insertTextFormat') && a:item['insertTextFormat'] != 1
+            let l:word = a:item['label']
+        else
+            let l:word = a:item['insertText']
+        endif
         let l:abbr = a:item['label']
     else
         let l:word = a:item['label']
