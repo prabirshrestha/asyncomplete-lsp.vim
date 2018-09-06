@@ -28,6 +28,9 @@ function! s:server_initialized() abort
                 if has_key(l:server, 'blacklist')
                     let l:source_opt['blacklist'] = l:server['blacklist']
                 endif
+                if has_key(l:server, 'priority')
+                    let l:source_opt['priority'] = l:server['priority']
+                endif
                 call asyncomplete#register_source(l:source_opt)
                 let s:servers[l:server_name] = 1
             else
