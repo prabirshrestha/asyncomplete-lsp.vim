@@ -78,9 +78,12 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
     if type(l:result) == type([])
         let l:items = l:result
         let l:incomplete = 0
-    else
+    elseif type(l:result) == type({})
         let l:items = l:result['items']
         let l:incomplete = l:result['isIncomplete']
+    else
+        let l:items = []
+        let l:incomplete = 0
     endif
 
     call map(l:items, 'lsp#omni#get_vim_completion_item(v:val)')
