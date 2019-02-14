@@ -69,7 +69,11 @@ function! s:completor(server_name, opt, ctx) abort
 endfunction
 
 function! s:handle_completion(server_name, opt, ctx, data) abort
-    if lsp#client#is_error(a:data) || !has_key(a:data, 'response') || !has_key(a:data['response'], 'result')
+    if !has_key(a:data, 'response')
+        return
+    endif
+    if lsp#client#is_error(a:data['response'])
+        echomsg lsp#client#error_message(a:data['response'])
         return
     endif
 
