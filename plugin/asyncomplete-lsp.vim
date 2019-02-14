@@ -73,7 +73,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         return
     endif
     if lsp#client#is_error(a:data['response'])
-        echomsg lsp#client#error_message(a:data['response'])
+        call lsp#utils#error(lsp#client#error_message(a:data['response']))
         return
     endif
 
