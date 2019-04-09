@@ -34,8 +34,6 @@ function! s:server_initialized() abort
                 endif
                 call asyncomplete#register_source(l:source_opt)
                 let s:servers[l:server_name] = 1
-            else
-                let s:servers[l:server_name] = 0
             endif
         endif
     endfor
