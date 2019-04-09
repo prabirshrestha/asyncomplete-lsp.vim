@@ -11,7 +11,7 @@ au User lsp_server_exit call s:server_exited()
 function! s:server_initialized() abort
     let l:server_names = lsp#get_server_names()
     for l:server_name in l:server_names
-        if !has_key(s:servers, l:server_name)
+        if !has_key(s:servers, l:server_name) || s:servers[l:server_name] == 0
             let l:init_capabilities = lsp#get_server_capabilities(l:server_name)
             if has_key(l:init_capabilities, 'completionProvider')
                 let l:name = s:generate_asyncomplete_name(l:server_name)
