@@ -85,7 +85,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         let l:incomplete = 0
     endif
 
-    call map(l:items, 'lsp#omni#get_vim_completion_item(v:val)')
+    call map(l:items, 'lsp#omni#get_vim_completion_item(v:val, a:server_name)')
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
