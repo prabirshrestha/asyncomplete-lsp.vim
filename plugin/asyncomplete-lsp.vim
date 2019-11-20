@@ -89,7 +89,7 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
-    let l:kw = matchstr(l:typed, '\w\+$')
+    let l:kw = matchstr(l:typed, '\k\+$')
     let l:kwlen = len(l:kw)
     let l:startcol = l:col - l:kwlen
 
