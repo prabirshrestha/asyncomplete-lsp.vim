@@ -57,17 +57,18 @@ function! s:generate_asyncomplete_name(server_name) abort
 endfunction
 
 function! s:completor(server_name, opt, ctx) abort
+    let l:pos = lsp#get_position()
     call lsp#send_request(a:server_name, {
         \ 'method': 'textDocument/completion',
         \ 'params': {
         \   'textDocument': lsp#get_text_document_identifier(),
-        \   'position': lsp#get_position(),
+        \   'position': l:pos,
         \ },
-        \ 'on_notification': function('s:handle_completion', [a:server_name, a:opt, a:ctx]),
+        \ 'on_notification': function('s:handle_completion', [a:server_name, a:opt, a:ctx, l:pos]),
         \ })
 endfunction
 
-function! s:handle_completion(server_name, opt, ctx, data) abort
+function! s:handle_completion(server_name, opt, ctx, pos, data) abort
     if lsp#client#is_error(a:data) || !has_key(a:data, 'response') || !has_key(a:data['response'], 'result')
         return
     endif
@@ -87,11 +88,8 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
 
     call map(l:items, 'lsp#omni#get_vim_completion_item(v:val, a:server_name)')
 
-    let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
-    let l:kw = matchstr(l:typed, '\k\+$')
-    let l:kwlen = len(l:kw)
-    let l:startcol = l:col - l:kwlen
+    let l:startcol = a:pos['character']
 
     call asyncomplete#complete(a:opt['name'], a:ctx, l:startcol, l:items, l:incomplete)
 endfunction
