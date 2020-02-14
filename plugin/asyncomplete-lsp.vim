@@ -50,7 +50,7 @@ function! s:server_exited() abort
     for l:server_name in l:server_names
         if !has_key(s:servers, l:server_name)
             continue
-		endif
+        endif
         let l:name = s:generate_asyncomplete_name(l:server_name)
         if s:servers[l:server_name]
             call asyncomplete#unregister_source(l:name)
