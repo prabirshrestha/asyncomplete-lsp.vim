@@ -5,3 +5,8 @@ Provide [Language Server Protocol](https://github.com/Microsoft/language-server-
 
 ## Installing
 Refer to asyncomplete.vim docs on Language Server Protocol at https://github.com/prabirshrestha/asyncomplete.vim#language-server-protocol-lsp.
+
+
+## License
+
+MIT
