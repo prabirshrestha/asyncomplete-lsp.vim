@@ -92,7 +92,11 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
         let l:incomplete = 0
     endif
 
-    call map(l:items, 'lsp#omni#get_vim_completion_item(v:val, a:server_name)')
+    let l:position = lsp#get_position()
+    let l:result = []
+    for l:item in l:items
+        call add(l:result, lsp#omni#get_vim_completion_item(l:item, a:server_name, l:position))
+    endfor
 
     let l:col = a:ctx['col']
     let l:typed = a:ctx['typed']
@@ -100,5 +104,5 @@ function! s:handle_completion(server_name, opt, ctx, data) abort
     let l:kwlen = len(l:kw)
     let l:startcol = l:col - l:kwlen
 
-    call asyncomplete#complete(a:opt['name'], a:ctx, l:startcol, l:items, l:incomplete)
+    call asyncomplete#complete(a:opt['name'], a:ctx, l:startcol, l:result, l:incomplete)
 endfunction
