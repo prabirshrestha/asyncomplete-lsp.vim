@@ -31,11 +31,15 @@ function! s:server_initialized() abort
         if type(l:init_capabilities['completionProvider']) == type({}) && has_key(l:init_capabilities['completionProvider'], 'triggerCharacters')
             let l:source_opt['triggers'] = { '*': l:init_capabilities['completionProvider']['triggerCharacters'] }
         endif
-        if has_key(l:server, 'whitelist')
-            let l:source_opt['whitelist'] = l:server['whitelist']
+        if has_key(l:server, 'allowlist')
+            let l:source_opt['allowlist'] = l:server['allowlist']
+        elseif has_key(l:server, 'whitelist')
+            let l:source_opt['allowlist'] = l:server['whitelist']
         endif
-        if has_key(l:server, 'blacklist')
-            let l:source_opt['blacklist'] = l:server['blacklist']
+        if has_key(l:server, 'blocklist')
+            let l:source_opt['blocklist'] = l:server['blocklist']
+        elseif has_key(l:server, 'blacklist')
+            let l:source_opt['blocklist'] = l:server['blacklist']
         endif
         if has_key(l:server, 'priority')
             let l:source_opt['priority'] = l:server['priority']
