@@ -97,6 +97,7 @@ function! s:handle_completion(server, position, opt, ctx, data) abort
     let l:kw = matchstr(l:typed, get(b:, 'asyncomplete_refresh_pattern', '\k\+$'))
     let l:kwlen = len(l:kw)
     let l:startcol = l:col - l:kwlen
+    let l:startcol = min([l:startcol, get(l:completion_result, 'startcol', l:startcol)])
 
     call asyncomplete#complete(a:opt['name'], a:ctx, l:startcol, l:completion_result['items'], l:completion_result['incomplete'])
 endfunction
