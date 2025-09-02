@@ -134,7 +134,7 @@ function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) ab
         au InsertLeave * ++once call s:clear_inline_preview()
     augroup END
 
-    imap <buffer> <tab> <Plug>(asyncomplete_lsp_inline_complete_accept)
+    exe 'imap' get(g:, 'asyncomplete_lsp_inline_complete_accept_key', '<tab>') '<plug>(asyncomplete_lsp_inline_complete_accept)'
 endfunction
 
 inoremap <Plug>(asyncomplete_lsp_inline_complete_accept) <c-r>=<SID>accept_inline_completion()<cr>
@@ -199,6 +199,5 @@ function! s:display_inline_completion(bufnr, text, pos) abort
     for l:curline in l:lines[1:]
         call prop_add(line('.'), 0, {'type': l:prop_type, 'text_align': 'below', 'text': l:curline})
     endfor
-    "let b:vim_lsp_inline_completion_text = l:new_suffix .. "\n" .. join(l:lines[1:], "\n")
     let b:vim_lsp_inline_completion_text = join(l:lines, "\n")
 endfunction
