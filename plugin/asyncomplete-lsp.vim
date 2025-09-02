@@ -18,7 +18,7 @@ function! s:server_initialized() abort
             continue
         endif
         let l:init_capabilities = lsp#get_server_capabilities(l:server_name)
-        if !has_key(l:init_capabilities, 'completionProvider')
+        if !has_key(l:init_capabilities, 'completionProvider') && !has_key(l:init_capabilities, 'inlineCompletionProvider')
             continue
         endif
 
@@ -26,10 +26,12 @@ function! s:server_initialized() abort
         let l:name = s:generate_asyncomplete_name(l:server_name)
         let l:source_opt = {
             \ 'name': l:name,
-            \ 'completor': function('s:completor', [l:server]),
+            \ 'completor': function('s:completor', [l:server, bufnr('.'), has_key(l:init_capabilities, 'inlineCompletionProvider')]),
             \ }
-        if type(l:init_capabilities['completionProvider']) == type({}) && has_key(l:init_capabilities['completionProvider'], 'triggerCharacters')
+        if has_key(l:init_capabilities, 'completionProvider') && type(l:init_capabilities['completionProvider']) == type({}) && has_key(l:init_capabilities['completionProvider'], 'triggerCharacters')
             let l:source_opt['triggers'] = { '*': l:init_capabilities['completionProvider']['triggerCharacters'] }
+        elseif type(l:init_capabilities['inlineCompletionProvider']) == type({}) && has_key(l:init_capabilities['inlineCompletionProvider'], 'triggerCharacters')
+            let l:source_opt['triggers'] = { '*': l:init_capabilities['inlineCompletionProvider']['triggerCharacters'] }
         endif
         if has_key(l:server, 'allowlist')
             let l:source_opt['allowlist'] = l:server['allowlist']
@@ -67,19 +69,31 @@ function! s:generate_asyncomplete_name(server_name) abort
     return 'asyncomplete_lsp_' . a:server_name
 endfunction
 
-function! s:completor(server, opt, ctx) abort
+function! s:completor(server, bufnr, inline, opt, ctx) abort
     let l:position = lsp#get_position()
-    call lsp#send_request(a:server['name'], {
-        \ 'method': 'textDocument/completion',
-        \ 'params': {
-        \   'textDocument': lsp#get_text_document_identifier(),
-        \   'position': l:position,
-        \ },
-        \ 'on_notification': function('s:handle_completion', [a:server, l:position, a:opt, a:ctx]),
-        \ })
+    if a:inline
+        call lsp#send_request(a:server['name'], {
+            \ 'method': 'textDocument/inlineCompletion',
+            \ 'params': {
+            \   'textDocument': lsp#get_text_document_identifier(),
+            \   'position': l:position,
+            \   'context': { 'triggerKind': 2 },
+            \ },
+            \ 'on_notification': function('s:handle_inline_completion', [a:server, l:position, a:opt, a:ctx, a:bufnr]),
+            \ })
+    else
+        call lsp#send_request(a:server['name'], {
+            \ 'method': 'textDocument/completion',
+            \ 'params': {
+            \   'textDocument': lsp#get_text_document_identifier(),
+            \   'position': l:position,
+            \ },
+            \ 'on_notification': function('s:handle_completion', [a:server, l:position, a:opt, a:ctx, a:bufnr]),
+            \ })
+    endif
 endfunction
 
-function! s:handle_completion(server, position, opt, ctx, data) abort
+function! s:handle_completion(server, position, opt, ctx, bufnr, data) abort
     if lsp#client#is_error(a:data) || !has_key(a:data, 'response') || !has_key(a:data['response'], 'result')
         return
     endif
@@ -100,4 +114,91 @@ function! s:handle_completion(server, position, opt, ctx, data) abort
     let l:startcol = min([l:startcol, get(l:completion_result, 'startcol', l:startcol)])
 
     call asyncomplete#complete(a:opt['name'], a:ctx, l:startcol, l:completion_result['items'], l:completion_result['incomplete'])
+endfunction
+
+function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) abort
+    if lsp#client#is_error(a:data) || !has_key(a:data, 'response') || !has_key(a:data['response'], 'result')
+        return
+    endif
+    let l:response = get(a:data, 'response', {})
+    let l:items = get(l:response, 'result', {}).items
+    if empty(l:items)
+        return
+    endif
+    let l:item = l:items[0]
+    let l:text = get(l:item, 'insertText', '')
+    call s:display_inline_completion(a:bufnr, l:text, a:position)
+
+    augroup asyncomplete_lsp_inline_complete_clear
+        au!
+        au InsertLeave * ++once call s:clear_inline_preview()
+    augroup END
+
+    imap <buffer> <tab> <Plug>(asyncomplete_lsp_inline_complete_accept)
+endfunction
+
+inoremap <Plug>(asyncomplete_lsp_inline_complete_accept) <c-r>=<SID>accept_inline_completion()<cr>
+
+function! s:accept_inline_completion() abort
+    if !exists('b:vim_lsp_inline_completion_text') || empty(b:vim_lsp_inline_completion_text)
+        return "\<Tab>"
+    endif
+    silent! normal! 0d$ _
+    silent! put! =b:vim_lsp_inline_completion_text
+    call s:clear_inline_preview()
+    return "\<Right>"
+endfunction
+
+function! s:clear_inline_preview() abort
+    let l:prop_type = 'vim_lsp_inline_completion_virtual_text'
+    if !empty(prop_type_get(l:prop_type))
+        call prop_remove({'type': l:prop_type, 'all': v:true})
+    endif
+    if exists('b:vim_lsp_inline_completion_text')
+        unlet b:vim_lsp_inline_completion_text
+    endif
+endfunction
+
+function! s:display_inline_completion(bufnr, text, pos) abort
+    let l:prop_type = 'vim_lsp_inline_completion_virtual_text'
+    if empty(prop_type_get(l:prop_type))
+        call prop_type_add(l:prop_type, { 'highlight': 'Comment' })
+    endif
+    call s:clear_inline_preview()
+
+    let l:lines = split(a:text, "\r\n\\=\\|\n", 1)
+    if empty(l:lines[-1])
+        call remove(l:lines, -1)
+    endif
+
+    let l:curline = getline('.')
+    let l:offset = col('.') - 1
+    let l:delete = strchars(strpart(l:curline, l:offset, len(l:curline) - l:offset))
+
+    let l:new_suffix = l:lines[0]
+    let l:cur_suffix = getline('.')[col('.') - 1 :]
+    let l:inset = ''
+    while l:delete > 0 && !empty(l:new_suffix)
+        let l:last_char = matchstr(l:new_suffix, '.$')
+        let l:new_suffix = matchstr(l:new_suffix, '^.\{-\}\ze.$')
+        if l:last_char ==# matchstr(l:cur_suffix, '.$')
+            if !empty(l:inset)
+                call prop_add(line('.'), col('.') + len(l:cur_suffix), {'type': l:prop_type, 'text': l:inset})
+                let l:inset = ''
+            endif
+            let l:cur_suffix = matchstr(l:cur_suffix, '^.\{-\}\ze.$')
+            let l:delete -= 1
+        else
+            let l:inset = l:last_char . l:inset
+        endif
+    endwhile
+    let l:new_suffix = strpart(l:new_suffix, l:offset)
+    if !empty(l:new_suffix . l:inset)
+        call prop_add(line('.'), col('.'), {'type': l:prop_type, 'text': l:new_suffix . l:inset})
+    endif
+    for l:curline in l:lines[1:]
+        call prop_add(line('.'), 0, {'type': l:prop_type, 'text_align': 'below', 'text': l:curline})
+    endfor
+    "let b:vim_lsp_inline_completion_text = l:new_suffix .. "\n" .. join(l:lines[1:], "\n")
+    let b:vim_lsp_inline_completion_text = join(l:lines, "\n")
 endfunction
