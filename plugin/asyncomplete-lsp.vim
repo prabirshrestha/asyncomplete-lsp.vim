@@ -121,7 +121,7 @@ function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) ab
         return
     endif
     let l:response = get(a:data, 'response', {})
-    let l:items = get(l:response, 'result', {}).items
+    let l:items = get(get(l:response, 'result', {}), 'items', [])
     if empty(l:items)
         return
     endif
