@@ -30,7 +30,7 @@ function! s:server_initialized() abort
             \ }
         if has_key(l:init_capabilities, 'completionProvider') && type(l:init_capabilities['completionProvider']) == type({}) && has_key(l:init_capabilities['completionProvider'], 'triggerCharacters')
             let l:source_opt['triggers'] = { '*': l:init_capabilities['completionProvider']['triggerCharacters'] }
-        elseif type(l:init_capabilities['inlineCompletionProvider']) == type({}) && has_key(l:init_capabilities['inlineCompletionProvider'], 'triggerCharacters')
+        elseif has_key(l:init_capabilities, 'inlineCompletionProvider') && type(l:init_capabilities['inlineCompletionProvider']) == type({}) && has_key(l:init_capabilities['inlineCompletionProvider'], 'triggerCharacters')
             let l:source_opt['triggers'] = { '*': l:init_capabilities['inlineCompletionProvider']['triggerCharacters'] }
         endif
         if has_key(l:server, 'allowlist')
