@@ -142,7 +142,7 @@ inoremap <Plug>(asyncomplete_lsp_inline_complete_accept) <c-r>=<SID>accept_inlin
 function! s:accept_inline_completion() abort
     if !exists('b:vim_lsp_inline_completion_text') || empty(b:vim_lsp_inline_completion_text)
         let l:key = get(g:, 'asyncomplete_lsp_inline_complete_accept_key', '<tab>')
-        return substitute(l:key, '<\([A-Za-z\-\]\[]\+\)>', '\=eval(''"\<'' . submatch(1) . ''>"'')', 'g')
+        return substitute(l:key, '<\([A-Za-z\-\]\[]\+\)>', '\=eval(''"\<'' .. submatch(1) .. ''>"'')', 'g')
     endif
     silent! normal! 0d$
     silent! put! =b:vim_lsp_inline_completion_text
