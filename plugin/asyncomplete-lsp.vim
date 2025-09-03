@@ -177,6 +177,7 @@ function! s:display_inline_completion(bufnr, text, pos) abort
 
     let l:new_suffix = l:lines[0]
     let l:cur_suffix = getline('.')[col('.') - 1 :]
+    let l:new_prefix = strpart(l:new_suffix, l:offset)
     let l:inset = ''
     while l:delete > 0 && !empty(l:new_suffix)
         let l:last_char = matchstr(l:new_suffix, '.$')
@@ -192,7 +193,7 @@ function! s:display_inline_completion(bufnr, text, pos) abort
             let l:inset = l:last_char . l:inset
         endif
     endwhile
-    let l:new_suffix = strpart(l:new_suffix, l:offset)
+    let l:new_suffix = l:new_prefix
     if !empty(l:new_suffix . l:inset)
         call prop_add(line('.'), col('.'), {'type': l:prop_type, 'text': l:new_suffix . l:inset})
     endif
