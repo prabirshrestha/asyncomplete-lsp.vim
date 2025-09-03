@@ -143,7 +143,7 @@ function! s:accept_inline_completion() abort
     if !exists('b:vim_lsp_inline_completion_text') || empty(b:vim_lsp_inline_completion_text)
         return "\<Tab>"
     endif
-    silent! normal! 0d$ _
+    silent! normal! 0d$
     silent! put! =b:vim_lsp_inline_completion_text
     call s:clear_inline_preview()
     return "\<Right>"
