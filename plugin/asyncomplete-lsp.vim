@@ -167,7 +167,7 @@ endfunction
 function! s:display_inline_completion(bufnr, text, pos) abort
     let l:prop_type = 'vim_lsp_inline_completion_virtual_text'
     if empty(prop_type_get(l:prop_type))
-        call prop_type_add(l:prop_type, { 'highlight': 'Comment' })
+        call prop_type_add(l:prop_type, { 'highlight': 'NonText' })
     endif
     call s:clear_inline_preview()
 
