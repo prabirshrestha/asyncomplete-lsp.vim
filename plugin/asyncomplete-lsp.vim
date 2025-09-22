@@ -134,10 +134,12 @@ function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) ab
         au InsertLeave * ++once call s:clear_inline_preview()
     augroup END
 
-    exe 'imap' get(g:, 'asyncomplete_lsp_inline_complete_accept_key', '<tab>') '<plug>(asyncomplete_lsp_inline_complete_accept)'
+    if !hasmapto('<Plug>(asyncomplete_lsp_inline_complete_accept)', 'i')
+      exe 'imap' get(g:, 'asyncomplete_lsp_inline_complete_accept_key', '<tab>') '<plug>(asyncomplete_lsp_inline_complete_accept)'
+    endif
 endfunction
 
-inoremap <Plug>(asyncomplete_lsp_inline_complete_accept) <c-r>=<SID>accept_inline_completion()<cr>
+inoremap <expr> <Plug>(asyncomplete_lsp_inline_complete_accept) (pumvisible() && complete_info()['selected'] == -1 ? "\<C-e>" : "") .. "<c-r>=<SID>accept_inline_completion()<cr>"
 
 function! s:accept_inline_completion() abort
     if !exists('b:vim_lsp_inline_completion_text') || empty(b:vim_lsp_inline_completion_text)
