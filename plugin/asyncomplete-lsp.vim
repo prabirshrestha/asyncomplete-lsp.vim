@@ -125,21 +125,31 @@ function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) ab
     if empty(l:items)
         return
     endif
+    let b:vim_lsp_inline_completion_info = [a:bufnr, l:items, a:position]
+    let b:vim_lsp_inline_completion_index = 0
     let l:item = l:items[0]
     let l:text = get(l:item, 'insertText', '')
     call s:display_inline_completion(a:bufnr, l:text, a:position)
 
     augroup asyncomplete_lsp_inline_complete_clear
         au!
-        au InsertLeave * ++once call s:clear_inline_preview()
+        au InsertLeave * ++once call s:clear_inline_all()
     augroup END
 
     if !hasmapto('<Plug>(asyncomplete_lsp_inline_complete_accept)', 'i')
-      exe 'imap' get(g:, 'asyncomplete_lsp_inline_complete_accept_key', '<tab>') '<plug>(asyncomplete_lsp_inline_complete_accept)'
+        exe 'imap' get(g:, 'asyncomplete_lsp_inline_complete_accept_key', '<tab>') '<plug>(asyncomplete_lsp_inline_complete_accept)'
+    endif
+    if !hasmapto('<Plug>(asyncomplete_lsp_inline_complete_next)', 'i')
+        exe 'imap' get(g:, 'asyncomplete_lsp_inline_complete_next_key', '<a-]>') '<plug>(asyncomplete_lsp_inline_complete_next)'
+    endif
+    if !hasmapto('<Plug>(asyncomplete_lsp_inline_complete_previous)', 'i')
+        exe 'imap' get(g:, 'asyncomplete_lsp_inline_complete_previous_key', '<a-[>') '<plug>(asyncomplete_lsp_inline_complete_previous)'
     endif
 endfunction
 
 inoremap <expr> <Plug>(asyncomplete_lsp_inline_complete_accept) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>accept_inline_completion()<cr>"
+inoremap <expr> <Plug>(asyncomplete_lsp_inline_complete_next) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>next_inline_completion()<cr>"
+inoremap <expr> <Plug>(asyncomplete_lsp_inline_complete_previous) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>previous_inline_completion()<cr>"
 
 function! s:accept_inline_completion() abort
     if !exists('b:vim_lsp_inline_completion_text') || empty(b:vim_lsp_inline_completion_text)
@@ -152,8 +162,32 @@ function! s:accept_inline_completion() abort
     else
         noautocmd silent! exe "normal! a\<c-r>=b:vim_lsp_inline_completion_text\<cr>"
     endif
-    call s:clear_inline_preview()
+    call s:clear_inline_all()
     return "\<right>"
+endfunction
+
+function! s:next_inline_completion() abort
+    if !exists('b:vim_lsp_inline_completion_info') || !exists('b:vim_lsp_inline_completion_index')
+         return ""
+    endif
+    let l:info = b:vim_lsp_inline_completion_info
+    let b:vim_lsp_inline_completion_index = b:vim_lsp_inline_completion_index == len(l:info[1]) - 1 ? 0 : b:vim_lsp_inline_completion_index + 1
+    let l:item = l:info[1][b:vim_lsp_inline_completion_index]
+    let l:text = get(l:item, 'insertText', '')
+    call s:display_inline_completion(l:info[0], l:text, l:info[2])
+    return ""
+endfunction
+
+function! s:previous_inline_completion() abort
+    if !exists('b:vim_lsp_inline_completion_info') || !exists('b:vim_lsp_inline_completion_index')
+         return ""
+    endif
+    let l:info = b:vim_lsp_inline_completion_info
+    let b:vim_lsp_inline_completion_index = b:vim_lsp_inline_completion_index == 0 ? len(l:info[1]) - 1 : b:vim_lsp_inline_completion_index - 1
+    let l:item = l:info[1][b:vim_lsp_inline_completion_index]
+    let l:text = get(l:item, 'insertText', '')
+    call s:display_inline_completion(l:info[0], l:text, l:info[2])
+    return ""
 endfunction
 
 function! s:clear_inline_preview() abort
@@ -163,6 +197,16 @@ function! s:clear_inline_preview() abort
     endif
     if exists('b:vim_lsp_inline_completion_text')
         unlet b:vim_lsp_inline_completion_text
+    endif
+endfunction
+
+function! s:clear_inline_all() abort
+    call s:clear_inline_preview()
+    if exists('b:vim_lsp_inline_completion_info')
+        unlet b:vim_lsp_inline_completion_info
+    endif
+    if exists('b:vim_lsp_inline_completion_index')
+        unlet b:vim_lsp_inline_completion_index
     endif
 endfunction
 
