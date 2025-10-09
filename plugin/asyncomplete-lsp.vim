@@ -147,9 +147,9 @@ function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) ab
     endif
 endfunction
 
-inoremap <expr> <Plug>(asyncomplete_lsp_inline_complete_accept) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>accept_inline_completion()<cr>"
-inoremap <expr> <Plug>(asyncomplete_lsp_inline_complete_next) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>next_inline_completion()<cr>"
-inoremap <expr> <Plug>(asyncomplete_lsp_inline_complete_previous) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>previous_inline_completion()<cr>"
+inoremap <expr> <silent> <Plug>(asyncomplete_lsp_inline_complete_accept) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>accept_inline_completion()<cr>"
+inoremap <expr> <silent> <Plug>(asyncomplete_lsp_inline_complete_next) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>next_inline_completion()<cr>"
+inoremap <expr> <silent> <Plug>(asyncomplete_lsp_inline_complete_previous) (pumvisible() ? "<C-e>" : "") .. "<c-r>=<SID>previous_inline_completion()<cr>"
 
 function! s:accept_inline_completion() abort
     if !exists('b:vim_lsp_inline_completion_text') || empty(b:vim_lsp_inline_completion_text)
