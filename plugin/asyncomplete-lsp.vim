@@ -165,7 +165,8 @@ function! s:accept_inline_completion() abort
         call s:clear_inline_all()
         return ""
     endif
-    noautocmd silent! exe "normal! a\<c-r>=b:vim_lsp_inline_completion_text\<cr>"
+    call setline('.', b:vim_lsp_inline_completion_text)
+    noautocmd silent! normal! $
     call s:clear_inline_all()
     return "\<right>"
 endfunction
