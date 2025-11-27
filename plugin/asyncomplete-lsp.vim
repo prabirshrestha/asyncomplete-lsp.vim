@@ -156,11 +156,11 @@ function! s:accept_inline_completion() abort
         let l:key = get(g:, 'asyncomplete_lsp_inline_complete_accept_key', '<tab>')
         return substitute(l:key, '<\([A-Za-z\-\]\[]\+\)>', '\=eval(''"\<'' .. submatch(1) .. ''>"'')', 'g')
     endif
-    noautocmd silent! normal! 0d$
+    noautocmd silent! call setline('.', '')
     if b:vim_lsp_inline_completion_text =~# '\n'
         for l:line in split(b:vim_lsp_inline_completion_text, "\n", 1)
-            noautocmd silent! exe "normal! a\<c-r>=l:line\<cr>"
-            noautocmd silent! normal! o
+            noautocmd silent! call setline('.', l:line)
+            noautocmd silent! put=''
         endfor
         call s:clear_inline_all()
         return ""
