@@ -157,18 +157,18 @@ function! s:accept_inline_completion() abort
         return substitute(l:key, '<\([A-Za-z\-\]\[]\+\)>', '\=eval(''"\<'' .. submatch(1) .. ''>"'')', 'g')
     endif
     noautocmd silent! call setline('.', '')
-    if b:vim_lsp_inline_completion_text =~# '\n'
-        for l:line in split(b:vim_lsp_inline_completion_text, "\n", 1)
-            noautocmd silent! call setline('.', l:line)
-            noautocmd silent! put=''
-        endfor
-        call s:clear_inline_all()
-        return ""
-    endif
-    call setline('.', b:vim_lsp_inline_completion_text)
-    noautocmd silent! normal! $
+    for l:line in split(b:vim_lsp_inline_completion_text, '\n\zs', 1)
+        let l:newline = l:line =~ '\n'
+        noautocmd silent! call setline('.', trim(l:line, "\n", 2))
+        if !l:newline
+            noautocmd silent! normal! $
+            call s:clear_inline_all()
+            return "\<right>"
+        endif
+        noautocmd silent! put=''
+    endfor
     call s:clear_inline_all()
-    return "\<right>"
+    return ''
 endfunction
 
 function! s:next_inline_completion() abort
