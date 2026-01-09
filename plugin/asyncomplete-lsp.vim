@@ -134,6 +134,8 @@ function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) ab
     augroup asyncomplete_lsp_inline_complete_clear
         au!
         au InsertLeave * ++once call s:clear_inline_all()
+        au InsertEnter * ++once call s:clear_inline_all()
+        au TextChangedI * call s:clear_inline_if_cursor_moved()
     augroup END
 
     if !hasmapto('<Plug>(asyncomplete_lsp_inline_complete_accept)', 'i')
@@ -212,6 +214,18 @@ function! s:clear_inline_all() abort
     endif
     if exists('b:vim_lsp_inline_completion_index')
         unlet b:vim_lsp_inline_completion_index
+    endif
+endfunction
+
+function! s:clear_inline_if_cursor_moved() abort
+    if !exists('b:vim_lsp_inline_completion_info')
+        return
+    endif
+    let l:info = b:vim_lsp_inline_completion_info
+    let l:pos = lsp#get_position()
+    " Clear if line or column changed
+    if l:pos['line'] != l:info[2]['line'] || l:pos['character'] != l:info[2]['character']
+        call s:clear_inline_all()
     endif
 endfunction
 
