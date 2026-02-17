@@ -117,7 +117,7 @@ function! s:handle_completion(server, position, opt, ctx, bufnr, data) abort
 endfunction
 
 function! s:handle_inline_completion(server, position, opt, ctx, bufnr, data) abort
-    if lsp#client#is_error(a:data) || !has_key(a:data, 'response') || !has_key(a:data['response'], 'result')
+    if lsp#client#is_error(a:data) || !has_key(a:data, 'response') || !has_key(a:data['response'], 'result') || mode() !=# 'i'
         return
     endif
     let l:response = get(a:data, 'response', {})
