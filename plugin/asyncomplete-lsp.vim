@@ -57,6 +57,11 @@ function! s:server_exited() abort
         if !has_key(s:servers, l:server_name)
             continue
         endif
+        " lsp_server_exit doesn't tell which server exited; keep sources
+        " for servers that are still running
+        if lsp#is_server_running(l:server_name)
+            continue
+        endif
         let l:name = s:generate_asyncomplete_name(l:server_name)
         if s:servers[l:server_name]
             call asyncomplete#unregister_source(l:name)
